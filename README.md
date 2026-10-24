@@ -35,7 +35,7 @@ The model has two operating points - the same weights at different detection can
 
 The fixed-512 point is the one that fits a phone or a Pi, and it costs about 0.098 page CER to get there.
 
-On the full 715-page set, the adaptive point scores **0.3799** with these weights held at F32. The Q8_0 number for the full set is still being measured and this card will carry it when it is known; on the 60-page subset, quantisation moved the adaptive score by 0.0004.
+On the **full 715-page set** at the adaptive point, this file scores **0.3807**. The same weights held at F32 score 0.3799, so quantisation costs 0.0008 here — against 0.0004 on the 60-page subset, and against a 0.0010 gain at the fixed canvas. The effect is small, real, and not consistently in one direction.
 
 Speed and memory were measured separately on 18 size-stratified pages at one thread: median 3,748 ms a page at the fixed canvas and 8,210 ms adaptive. Load time is 8.8 ms.
 
@@ -43,7 +43,7 @@ Scoring is our own harness, not an official leaderboard run, so an official eval
 
 ## Limits
 
-- **This is a small model and it reads a benchmark page wrong about a third of the time.** A page CER near 0.39 is not production-grade accuracy on hard scans; it is what 3.29 MB buys.
+- **This is a small model and it reads a benchmark page wrong about a third of the time.** 0.3807 page CER is not production-grade accuracy on hard scans; it is what 3.29 MB buys.
 - **The weakness is segmentation and reading order, not finding the text.** Giving this recogniser better line boxes closes about three quarters of the error while the order-free word error barely moves. The text is being found and then cut into the wrong lines and read in the wrong sequence.
 - **Memory is dominated by the detection canvas, not the weights.** A 3.29 MB model peaks at 1.5 GB at the 2048 canvas, because the detector's first convolution alone holds a 268 MB activation. The fixed-512 point avoids this at a real accuracy cost.
 - **630 characters.** Latin, common punctuation and a limited CJK set. Anything outside that cannot be emitted at all, whatever the image says.
