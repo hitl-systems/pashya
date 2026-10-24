@@ -22,20 +22,20 @@ Scanned and photographed document pages, read end to end on a CPU: a phone, a la
 
 ## Results
 
-OmniDocBench, all 715 pages, page-level character error rate after reading-order assembly. Lower is better. Greedy decoding, no language model.
+Page-level character error rate on OmniDocBench after reading-order assembly. Lower is better. Greedy decoding, no language model, one CPU thread.
 
-| | page CER |
-|---|---|
-| pashya v1 min | **0.3799** |
+Every number below was produced by running the file in this repository, not an unquantised copy of it. That distinction is not pedantry: Q8_0 changes 447 of 4,321 recognised lines against the same weights at F32.
 
-The model has two operating points, which are the same weights at different detection canvases. On a 60-page stratified subset, one CPU thread, greedy:
+The model has two operating points - the same weights at different detection canvases. On a 60-page stratified subset:
 
 | | page CER | per page | peak RSS |
 |---|---|---|---|
-| fixed 512 canvas | 0.4866 | 5.1 s | 349 MB |
-| adaptive to 2048 | 0.3868 | 9.7 s | 1,535 MB |
+| fixed 512 canvas | 0.4856 | 5.1 s | 349 MB |
+| adaptive to 2048 | **0.3872** | 9.7 s | 1,535 MB |
 
-The full-set number above is the adaptive point. The fixed-512 point is the one that fits a phone or a Pi, and it costs 0.0998 page CER to get there.
+The fixed-512 point is the one that fits a phone or a Pi, and it costs about 0.098 page CER to get there.
+
+On the full 715-page set, the adaptive point scores **0.3799** with these weights held at F32. The Q8_0 number for the full set is still being measured and this card will carry it when it is known; on the 60-page subset, quantisation moved the adaptive score by 0.0004.
 
 Speed and memory were measured separately on 18 size-stratified pages at one thread: median 3,748 ms a page at the fixed canvas and 8,210 ms adaptive. Load time is 8.8 ms.
 
@@ -43,7 +43,7 @@ Scoring is our own harness, not an official leaderboard run, so an official eval
 
 ## Limits
 
-- **This is a small model and it reads a benchmark page wrong about a third of the time.** 0.3799 page CER is not production-grade accuracy on hard scans; it is what 3.29 MB buys.
+- **This is a small model and it reads a benchmark page wrong about a third of the time.** A page CER near 0.39 is not production-grade accuracy on hard scans; it is what 3.29 MB buys.
 - **The weakness is segmentation and reading order, not finding the text.** Giving this recogniser better line boxes closes about three quarters of the error while the order-free word error barely moves. The text is being found and then cut into the wrong lines and read in the wrong sequence.
 - **Memory is dominated by the detection canvas, not the weights.** A 3.29 MB model peaks at 1.5 GB at the 2048 canvas, because the detector's first convolution alone holds a 268 MB activation. The fixed-512 point avoids this at a real accuracy cost.
 - **630 characters.** Latin, common punctuation and a limited CJK set. Anything outside that cannot be emitted at all, whatever the image says.
